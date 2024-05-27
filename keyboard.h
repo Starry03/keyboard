@@ -10,6 +10,7 @@
 
 typedef struct s_keyboard {
 	char	exit_char;
+	bool	running;
 }	t_keyboard;
 
 typedef struct s_listen_args {
@@ -23,5 +24,7 @@ void				start_keylistener(t_keyboard *keyboard, char *buf);
 /* static void		*listen(void *args); */
 void				enable_raw_mode();
 void				disable_raw_mode();
+
+void				keyboard_bruteforce_exit(t_keyboard *keyboard);
 
 #endif
