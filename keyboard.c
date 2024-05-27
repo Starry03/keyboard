@@ -6,17 +6,18 @@
 
 struct termios	default_termios;
 
-t_keyboard	*keyboard_init(char exit_char)
+t_keyboard	*keyboard_init(char exit_char, char *buf)
 {
 	t_keyboard	*keyboard;
 
 	keyboard = (t_keyboard *)malloc(sizeof(t_keyboard));
 	keyboard->exit_char = exit_char;
 	keyboard->running = true;
+	keyboard->buf = buf;
 	return (keyboard);
 }
 
-static void	keyboard_free(t_keyboard *keyboard)
+inline void	keyboard_free(t_keyboard *keyboard)
 {
 	free(keyboard);
 }
@@ -41,29 +42,26 @@ void	enable_raw_mode(void)
 
 static void	*listen(void *arg)
 {
-	t_listen_args	*args;
-	char			local_buffer;
+	t_keyboard	*args;
+	char		local_buffer;
 
-	args = (t_listen_args *)arg;
+	args = (t_keyboard *)arg;
 	enable_raw_mode();
-	while (args->keyboard->running && read(STDIN_FILENO, &local_buffer, 1) == 1
-		&& local_buffer != args->keyboard->exit_char)
+	while (args->running && read(STDIN_FILENO, &local_buffer, 1) == 1)
+	{
 		*(args->buf) = local_buffer;
-	keyboard_free(args->keyboard);
-	free(args);
+		if (local_buffer == args->exit_char)
+			break ;
+	}
 	return (NULL);
 }
 
-void	start_keylistener(t_keyboard *keyboard, char *buf)
+void	start_keylistener(t_keyboard *keyboard)
 {
-	t_listen_args	*args;
-	pthread_t		thread;
+	pthread_t	thread;
 
-	args = malloc(sizeof(t_listen_args));
-	args->keyboard = keyboard;
-	args->buf = buf;
-	*buf = 0;
-	pthread_create(&thread, NULL, listen, (void *)args);
+	*keyboard->buf = 0;
+	pthread_create(&thread, NULL, listen, (void *)keyboard);
 }
 
 void	keyboard_bruteforce_exit(t_keyboard *keyboard)

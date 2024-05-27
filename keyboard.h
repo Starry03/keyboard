@@ -1,30 +1,28 @@
 /*
 	Desc: thread that handles key input
-	Integration: #include <keyboard.h>, allocate a keyboard and call 'start_keylistener'
+	Integration: #include <keyboard.h>,
+		allocate a keyboard and call 'start_keylistener'
 */
 
 #ifndef KEYBOARD_H
 # define KEYBOARD_H
 
-#include <stdbool.h>
+# include <stdbool.h>
 
-typedef struct s_keyboard {
+typedef struct s_keyboard
+{
+	char	*buf;
 	char	exit_char;
 	bool	running;
-}	t_keyboard;
+}			t_keyboard;
 
-typedef struct s_listen_args {
-	t_keyboard	*keyboard;
-	char		*buf;
-}	t_listen_args;
-
-t_keyboard			*keyboard_init(char exit_char);
-/* static void		keyboard_free(t_keyboard *keyboard); */
-void				start_keylistener(t_keyboard *keyboard, char *buf);
+t_keyboard	*keyboard_init(char exit_char, char *buf);
+void		keyboard_free(t_keyboard *keyboard);
+void		start_keylistener(t_keyboard *keyboard);
 /* static void		*listen(void *args); */
-void				enable_raw_mode();
-void				disable_raw_mode();
+void		enable_raw_mode(void);
+void		disable_raw_mode(void);
 
-void				keyboard_bruteforce_exit(t_keyboard *keyboard);
+void		keyboard_bruteforce_exit(t_keyboard *keyboard);
 
 #endif

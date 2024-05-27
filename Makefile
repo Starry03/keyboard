@@ -10,5 +10,13 @@ all: keyboard.o
 	ranlib $(NAME)
 	@rm keyboard.o
 
+clean:
+	@rm keyboard.o
+
+fclean: clean
+	@rm $(NAME)
+
+re: fclean all
+
 .PHONY: all
 	
