@@ -36,7 +36,7 @@ void	enable_raw_mode(void)
 	new_termios = default_termios;
 	new_termios.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN);
 	new_termios.c_iflag &= ~(IXON);
-	new_termios.c_oflag &= ~(OPOST);
+	// new_termios.c_oflag &= ~(OPOST);
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_termios);
 }
 
