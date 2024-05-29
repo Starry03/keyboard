@@ -61,7 +61,6 @@ void	start_keylistener(t_keyboard *keyboard)
 	pthread_t	thread;
 
 	*keyboard->buf = 0;
-	pthread_detach(thread);
 	pthread_create(&thread, NULL, listen, (void *)keyboard);
 }
 
