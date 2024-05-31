@@ -6,7 +6,7 @@
 
 struct termios	default_termios;
 
-t_keyboard	*keyboard_init(char exit_char, char *buf)
+t_keyboard	*keyboard_init(uint32_t exit_char, unsigned char *buf)
 {
 	t_keyboard	*keyboard;
 
@@ -42,12 +42,14 @@ void	enable_raw_mode(void)
 
 static void	*listen(void *arg)
 {
-	t_keyboard	*args;
-	char		local_buffer;
+	t_keyboard		*args;
+	unsigned char	local_buffer;
+	size_t			char_size;
 
+	char_size = sizeof(unsigned char);
 	args = (t_keyboard *)arg;
 	enable_raw_mode();
-	while (args->running && read(STDIN_FILENO, &local_buffer, 1) == 1)
+	while (args->running && read(STDIN_FILENO, &local_buffer, char_size) > 0)
 	{
 		*(args->buf) = local_buffer;
 		if (local_buffer == args->exit_char)
