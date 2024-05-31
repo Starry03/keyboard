@@ -59,17 +59,14 @@ static void	*listen(void *arg)
 /**
  * @brief Start the key listener thread
  * @return thread id
-*/
-unsigned long	*start_keylistener(t_keyboard *keyboard)
+ */
+unsigned long	start_keylistener(t_keyboard *keyboard)
 {
-	unsigned long	*thread_id;
-	pthread_t		thread;
+	pthread_t	thread;
 
 	*keyboard->buf = 0;
 	pthread_create(&thread, NULL, listen, (void *)keyboard);
-	thread_id = malloc(sizeof(unsigned long));
-	*(unsigned long *)thread_id = thread;
-	return (thread_id);
+	return (thread);
 }
 
 void	keyboard_bruteforce_exit(t_keyboard *keyboard)
