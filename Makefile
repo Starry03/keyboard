@@ -9,9 +9,6 @@ all: keyboard.o
 keyboard.o:
 	$(CC) $(FLAGS) -I. -c keyboard.c -o keyboard.o
 
-keyboard.o:
-	$(CC) $(FLAGS) -I. -c keyboard.c -o keyboard.o
-
 clean:
 	@rm keyboard.o
 

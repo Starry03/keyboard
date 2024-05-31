@@ -24,5 +24,7 @@ void			enable_raw_mode(void);
 void			disable_raw_mode(void);
 
 void			keyboard_bruteforce_exit(t_keyboard *keyboard);
+void			keyboard_safestop(t_keyboard *keyboard,
+					unsigned long thread_id);
 
 #endif

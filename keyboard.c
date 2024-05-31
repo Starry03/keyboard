@@ -74,3 +74,9 @@ void	keyboard_bruteforce_exit(t_keyboard *keyboard)
 	// set running to false -> exit thread
 	keyboard->running = false;
 }
+
+void	keyboard_safestop(t_keyboard *keyboard, unsigned long thread_id)
+{
+	keyboard_bruteforce_exit(keyboard);
+	pthread_join(thread_id, NULL);
+}
