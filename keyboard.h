@@ -31,9 +31,9 @@ void				keyboard_safestop(t_keyboard *keyboard,
 # define LINE_FEED 10
 # define CARRIAGE_RETURN 13
 # define ESC 27
-# define ARROW_UP 65
-# define ARROW_DOWN 66
-# define ARROW_RIGHT 67
-# define ARROW_LEFT 68
+# define ARROW_UP 129
+# define ARROW_DOWN 141
+# define ARROW_RIGHT 143
+# define ARROW_LEFT 144
 # define DELETE 127
 #endif
