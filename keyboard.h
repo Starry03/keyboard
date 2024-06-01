@@ -28,4 +28,11 @@ void				keyboard_bruteforce_exit(t_keyboard *keyboard);
 void				keyboard_safestop(t_keyboard *keyboard,
 						unsigned long thread_id);
 
+# define LINE_FEED 10
+# define CARRIAGE_RETURN 13
+# define ESC 27
+# define ARROW_UP 65
+# define ARROW_DOWN 66
+# define ARROW_RIGHT 67
+# define ARROW_LEFT 68
 #endif
