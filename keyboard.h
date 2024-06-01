@@ -35,4 +35,5 @@ void				keyboard_safestop(t_keyboard *keyboard,
 # define ARROW_DOWN 66
 # define ARROW_RIGHT 67
 # define ARROW_LEFT 68
+# define DELETE 127
 #endif
