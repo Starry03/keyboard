@@ -54,7 +54,8 @@ static void	*listen(void *arg)
 		if (local_buffer == 27)
 		{
 			read(STDIN_FILENO, &local_buffer, char_size);
-			switch (read(STDIN_FILENO, &local_buffer, char_size))
+			read(STDIN_FILENO, &local_buffer, char_size);
+			switch (local_buffer)
 			{
 			case 'A':
 				*(args->buf) = ARROW_UP;
