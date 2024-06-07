@@ -51,9 +51,14 @@ static void	*listen(void *arg)
 	enable_raw_mode();
 	while (args->running && read(STDIN_FILENO, &local_buffer, char_size) > 0)
 	{
-		if (local_buffer == 27)
+		if (local_buffer == ESC)
 		{
-			read(STDIN_FILENO, &local_buffer, char_size);
+			if (read(STDIN_FILENO, &local_buffer, char_size) <= 0
+				|| local_buffer != 91)
+			{
+				*(args->buf) = ESC;
+				continue ;
+			}
 			read(STDIN_FILENO, &local_buffer, char_size);
 			switch (local_buffer)
 			{
@@ -78,6 +83,7 @@ static void	*listen(void *arg)
 		*(args->buf) = local_buffer;
 		if (local_buffer == args->exit_char)
 			break ;
+		local_buffer = 0;
 	}
 	return (NULL);
 }
