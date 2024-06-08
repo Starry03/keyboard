@@ -2,6 +2,8 @@ CC = gcc
 FLAGS = -Werror -Wall -Wextra
 NAME = keyboard.a
 
+LINK = ./$(NAME) -I.
+
 all: keyboard.o
 	ar rcs $(NAME) keyboard.o
 	ranlib $(NAME)
@@ -17,5 +19,8 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all
+test:
+	$(CC) $(FLAGS) main.c $(LINK) -o main && ./main
+
+.PHONY: all re clean fclean test
 	
