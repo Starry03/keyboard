@@ -1,5 +1,4 @@
 #include "keyboard.h"
-#include <pthread.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
@@ -13,6 +12,7 @@ t_keyboard	*keyboard_init(uint32_t exit_char, unsigned char *buf)
 	keyboard = (t_keyboard *)malloc(sizeof(t_keyboard));
 	keyboard->exit_char = exit_char;
 	keyboard->running = true;
+	keyboard->can_change_key = true;
 	keyboard->buf = buf;
 	return (keyboard);
 }
@@ -42,46 +42,49 @@ void	enable_raw_mode(void)
 
 static void	*listen(void *arg)
 {
-	t_keyboard		*args;
+	t_keyboard		*keyboard;
 	unsigned char	local_buffer;
 	size_t			char_size;
 
 	char_size = sizeof(unsigned char);
-	args = (t_keyboard *)arg;
+	keyboard = (t_keyboard *)arg;
 	enable_raw_mode();
-	while (args->running && read(STDIN_FILENO, &local_buffer, char_size) > 0)
+	while (keyboard->running && read(STDIN_FILENO, &local_buffer,
+			char_size) > 0)
 	{
+		if (!keyboard->can_change_key)
+			continue ;
 		if (local_buffer == ESC)
 		{
 			if (read(STDIN_FILENO, &local_buffer, char_size) <= 0
-				|| local_buffer != 91)
+				|| local_buffer != '[')
 			{
-				*(args->buf) = ESC;
+				*(keyboard->buf) = ESC;
 				continue ;
 			}
 			read(STDIN_FILENO, &local_buffer, char_size);
 			switch (local_buffer)
 			{
 			case 'A':
-				*(args->buf) = ARROW_UP;
+				*(keyboard->buf) = ARROW_UP;
 				break ;
 			case 'B':
-				*(args->buf) = ARROW_DOWN;
+				*(keyboard->buf) = ARROW_DOWN;
 				break ;
 			case 'C':
-				*(args->buf) = ARROW_RIGHT;
+				*(keyboard->buf) = ARROW_RIGHT;
 				break ;
 			case 'D':
-				*(args->buf) = ARROW_LEFT;
+				*(keyboard->buf) = ARROW_LEFT;
 				break ;
 			default:
-				*(args->buf) = 27;
+				*(keyboard->buf) = ESC;
 				break ;
 			}
 			continue ;
 		}
-		*(args->buf) = local_buffer;
-		if (local_buffer == args->exit_char)
+		*(keyboard->buf) = local_buffer;
+		if (local_buffer == keyboard->exit_char)
 			break ;
 		local_buffer = 0;
 	}
@@ -92,7 +95,7 @@ static void	*listen(void *arg)
  * @brief Start the key listener thread
  * @return thread id
  */
-unsigned long	start_keylistener(t_keyboard *keyboard)
+pthread_t	start_keylistener(t_keyboard *keyboard)
 {
 	pthread_t	thread;
 
@@ -107,8 +110,13 @@ void	keyboard_bruteforce_exit(t_keyboard *keyboard)
 	keyboard->running = false;
 }
 
-void	keyboard_safestop(t_keyboard *keyboard, unsigned long thread_id)
+void	keyboard_safestop(t_keyboard *keyboard, pthread_t thread_id)
 {
 	keyboard_bruteforce_exit(keyboard);
 	pthread_join(thread_id, NULL);
+}
+
+void	set_can_change_key(t_keyboard *keyboard, bool value)
+{
+	keyboard->can_change_key = value;
 }
