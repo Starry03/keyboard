@@ -53,7 +53,10 @@ static void	*listen(void *arg)
 			char_size) > 0)
 	{
 		if (!keyboard->can_change_key)
+		{
+			local_buffer = 0;
 			continue ;
+		}
 		if (local_buffer == ESC)
 		{
 			if (read(STDIN_FILENO, &local_buffer, char_size) <= 0
