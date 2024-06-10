@@ -9,30 +9,26 @@
 
 int main(int argc, char const *argv[])
 {
-	char		buf;
-	size_t		i;
-	t_keyboard 	*keyboard;
+	t_keyboard		*keyboard_handler;
+	t_uchar			key_buf;
+	pthread_t		keyboard_thread_id;
+	size_t			i;
 	
-	buf = 0;
 	i = 0;
-	keyboard = keyboard_init('q');
-	start_keylistener(keyboard, &buf);
-
+	keyboard = keyboard_init('q', &key_buf);
+	keyboard_thread_id = start_keylistener(keyboard_handler);
 	while (i < 10)
 	{
 		sleep(1);
-		if (buf)
-			printf("c: %c\r\n", buf);
+		if (key_buf)
+			printf("c: %c\n", key_buf);
 		i++;
 	}
+	keyboard_safestop(keyboard_handler, keyboard_thread_id);
+	keyboard_free(keyboard_handler);
 	return 0;
 }
 ```
-
-### bitwise
-
-- '&=' bitwise and
-- '~' bitwise negation
 
 ### Flags
 
