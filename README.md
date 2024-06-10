@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
 - ECHO = terminal shows what's typed
 - ICANON = waits for a \n or EOF
 - ISIG = enables standard behaviour for CTRL-Z and CTRL-C
-- IXON = for CTRL-S and CTRL-Q
-- IEXTEN = for CTRL-V and CTRL-O
-- ICRNL = for CTRL-M
-- OPOST = for output processing
+- IXON = enables CTRL-S and CTRL-Q
+- IEXTEN = CTRL-V and CTRL-O
+- ICRNL = CTRL-M
+- OPOST = output processing
