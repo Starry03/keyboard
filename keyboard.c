@@ -14,7 +14,7 @@ t_keyboard	*keyboard_init(uint32_t exit_char, unsigned char *buf)
 	keyboard = (t_keyboard *)malloc(sizeof(t_keyboard));
 	keyboard->exit_char = exit_char;
 	keyboard->running = true;
-	keyboard->can_change_key = true;
+	keyboard->key_can_change = true;
 	keyboard->buf = buf;
 	return (keyboard);
 }
@@ -54,7 +54,7 @@ static void	*listen(void *arg)
 	while (keyboard->running && read(STDIN_FILENO, local_buffer, BUF_SIZE) !=
 		-1)
 	{
-		if (!keyboard->can_change_key)
+		if (!keyboard->key_can_change)
 		{
 			memset(local_buffer, 0, BUF_SIZE);
 			continue ;
@@ -64,6 +64,7 @@ static void	*listen(void *arg)
 			if (local_buffer[1] != '[')
 			{
 				*(keyboard->buf) = ESC;
+				memset(local_buffer, 0, BUF_SIZE);
 				continue ;
 			}
 			switch (local_buffer[2])
@@ -84,6 +85,7 @@ static void	*listen(void *arg)
 				*(keyboard->buf) = ESC;
 				break ;
 			}
+			memset(local_buffer, 0, BUF_SIZE);
 			continue ;
 		}
 		*(keyboard->buf) = local_buffer[0];
@@ -119,7 +121,7 @@ void	keyboard_safestop(t_keyboard *keyboard, pthread_t thread_id)
 	pthread_join(thread_id, NULL);
 }
 
-void	set_can_change_key(t_keyboard *keyboard, bool value)
+void	set_key_can_change(t_keyboard *keyboard, bool value)
 {
-	keyboard->can_change_key = value;
+	keyboard->key_can_change = value;
 }
