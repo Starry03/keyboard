@@ -1,5 +1,7 @@
 #include "keyboard.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -42,31 +44,29 @@ void	enable_raw_mode(void)
 
 static void	*listen(void *arg)
 {
+	const size_t	BUF_SIZE = 3;
 	t_keyboard		*keyboard;
-	unsigned char	local_buffer;
-	size_t			char_size;
+	unsigned char	local_buffer[BUF_SIZE];
 
-	char_size = sizeof(unsigned char);
 	keyboard = (t_keyboard *)arg;
 	enable_raw_mode();
-	while (keyboard->running && read(STDIN_FILENO, &local_buffer,
-			char_size) > 0)
+	memset(local_buffer, 0, BUF_SIZE);
+	while (keyboard->running && read(STDIN_FILENO, local_buffer, BUF_SIZE) !=
+		-1)
 	{
 		if (!keyboard->can_change_key)
 		{
-			local_buffer = 0;
+			memset(local_buffer, 0, BUF_SIZE);
 			continue ;
 		}
-		if (local_buffer == ESC)
+		if (local_buffer[0] == ESC)
 		{
-			if (read(STDIN_FILENO, &local_buffer, char_size) <= 0
-				|| local_buffer != '[')
+			if (local_buffer[1] != '[')
 			{
 				*(keyboard->buf) = ESC;
 				continue ;
 			}
-			read(STDIN_FILENO, &local_buffer, char_size);
-			switch (local_buffer)
+			switch (local_buffer[2])
 			{
 			case 'A':
 				*(keyboard->buf) = ARROW_UP;
@@ -86,10 +86,10 @@ static void	*listen(void *arg)
 			}
 			continue ;
 		}
-		*(keyboard->buf) = local_buffer;
-		if (local_buffer == keyboard->exit_char)
+		*(keyboard->buf) = local_buffer[0];
+		if (local_buffer[0] == keyboard->exit_char)
 			break ;
-		local_buffer = 0;
+		memset(local_buffer, 0, BUF_SIZE);
 	}
 	return (NULL);
 }
