@@ -1,12 +1,23 @@
 #include "keyboard.h"
+#include <fcntl.h>
+#include <semaphore.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
 
-struct termios	default_termios;
+#define BUFFER_SIZE 3
 
-t_keyboard	*keyboard_init(uint32_t exit_char, unsigned char *buf)
+struct termios			default_termios;
+sem_t					keyboard_mutex;
+
+/**
+ * @brief Initialize a keyboard struct
+ * @param exit_char character that will stop the key listener
+ * @param buf buffer to store the key pressed
+ */
+t_keyboard	*keyboard_init(unsigned char exit_char, unsigned char *buf)
 {
 	t_keyboard	*keyboard;
 
@@ -18,6 +29,9 @@ t_keyboard	*keyboard_init(uint32_t exit_char, unsigned char *buf)
 	return (keyboard);
 }
 
+/**
+ * @brief Free the keyboard struct
+ */
 inline void	keyboard_free(t_keyboard *keyboard)
 {
 	free(keyboard);
@@ -41,57 +55,74 @@ void	enable_raw_mode(void)
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_termios);
 }
 
+static unsigned char	write_key(char *buf, unsigned char c, sem_t *mutex,
+		unsigned char *local_buffer)
+{
+	keyboard_set_buf(buf, c, 1);
+	memset(local_buffer, 0, BUFFER_SIZE);
+	return (c);
+}
+
+/**
+ * @brief Listen to key presses
+ * @param arg t_keyboard struct
+ */
 static void	*listen(void *arg)
 {
-	const size_t	BUF_SIZE = 3;
 	t_keyboard		*keyboard;
-	unsigned char	local_buffer[BUF_SIZE];
+	unsigned char	local_buffer[BUFFER_SIZE];
+	sem_t			*mutex;
 
 	keyboard = (t_keyboard *)arg;
+	if (sem_init(&keyboard_mutex, false, 1) == -1)
+	{
+		perror("semaphore failed, check t_keyboard struct for errors\n");
+		return (NULL);
+	}
+	mutex = &keyboard_mutex;
 	enable_raw_mode();
-	memset(local_buffer, 0, BUF_SIZE);
-	while (keyboard->running && read(STDIN_FILENO, local_buffer, BUF_SIZE) !=
+	memset(local_buffer, 0, BUFFER_SIZE);
+	while (keyboard->running && read(STDIN_FILENO, local_buffer, BUFFER_SIZE) !=
 		-1)
 	{
 		if (!keyboard->key_can_change)
 		{
-			memset(local_buffer, 0, BUF_SIZE);
+			memset(local_buffer, 0, BUFFER_SIZE);
 			continue ;
 		}
 		if (local_buffer[0] == ESC)
 		{
 			if (local_buffer[1] != '[')
 			{
-				*(keyboard->buf) = ESC;
-				memset(local_buffer, 0, BUF_SIZE);
+				write_key(keyboard->buf, ESC, mutex, local_buffer);
 				continue ;
 			}
 			switch (local_buffer[2])
 			{
 			case 'A':
-				*(keyboard->buf) = ARROW_UP;
+				write_key(keyboard->buf, ARROW_UP, mutex, local_buffer);
 				break ;
 			case 'B':
-				*(keyboard->buf) = ARROW_DOWN;
+				write_key(keyboard->buf, ARROW_DOWN, mutex, local_buffer);
 				break ;
 			case 'C':
-				*(keyboard->buf) = ARROW_RIGHT;
+				write_key(keyboard->buf, ARROW_RIGHT, mutex, local_buffer);
 				break ;
 			case 'D':
-				*(keyboard->buf) = ARROW_LEFT;
+				write_key(keyboard->buf, ARROW_LEFT, mutex, local_buffer);
 				break ;
 			default:
-				*(keyboard->buf) = ESC;
+				write_key(keyboard->buf, ESC, mutex, local_buffer);
 				break ;
 			}
-			memset(local_buffer, 0, BUF_SIZE);
 			continue ;
 		}
-		*(keyboard->buf) = local_buffer[0];
-		if (local_buffer[0] == keyboard->exit_char)
+		if (keyboard->exit_char == write_key(keyboard->buf, local_buffer[0],
+				mutex, local_buffer))
 			break ;
-		memset(local_buffer, 0, BUF_SIZE);
 	}
+	set_key_can_change(keyboard, false);
+	sem_destroy(mutex);
 	return (NULL);
 }
 
@@ -104,6 +135,7 @@ pthread_t	start_keylistener(t_keyboard *keyboard)
 	pthread_t	thread;
 
 	*keyboard->buf = 0;
+	set_key_can_change(keyboard, true);
 	pthread_create(&thread, NULL, listen, (void *)keyboard);
 	return (thread);
 }
@@ -123,4 +155,27 @@ void	keyboard_safestop(t_keyboard *keyboard, pthread_t thread_id)
 void	set_key_can_change(t_keyboard *keyboard, bool value)
 {
 	keyboard->key_can_change = value;
+}
+
+/**
+ * @brief utility to safely set buffer value (avoids race conditions)
+ */
+void	keyboard_set_buf(char *buf, char c, size_t size)
+{
+	if (!buf)
+		return ;
+	sem_wait(&keyboard_mutex);
+	memset(buf, c, size);
+	sem_post(&keyboard_mutex);
+}
+
+/**
+ * @brief utility to reset buffer
+ * @param buf buffer to set to 0
+ */
+void	keyboard_reset_buf(char *buf, size_t size)
+{
+	if (!buf)
+		return ;
+	keyboard_set_buf(buf, 0, size);
 }

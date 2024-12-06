@@ -4,30 +4,41 @@
 
 ```c
 #include "keyboard.h"
+#include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
-int main(int argc, char const *argv[])
+int	main(int argc, char const *argv[])
 {
-	t_keyboard		*keyboard_handler;
-	t_uchar			key_buf;
-	pthread_t		keyboard_thread_id;
-	size_t			i;
-	
-	i = 0;
-	keyboard = keyboard_init('q', &key_buf);
-	keyboard_thread_id = start_keylistener(keyboard_handler);
-	while (i < 10)
+	t_keyboard		*keyboard;
+	// save thread id to stop it
+	pthread_t		thread_id;
+	// key will go here
+	unsigned char	*buf;
+
+	buf = (char *)malloc(1);
+	// allocate
+	keyboard = keyboard_init('q', buf);
+	// starts reading stdin
+	// result will go into 'buf'
+	thread_id = start_keylistener(keyboard);
+	while (keyboard->key_can_change)
 	{
-		sleep(1);
-		if (key_buf)
-			printf("c: %c\n", key_buf);
-		i++;
+		if (!*buf)
+			continue ;
+		printf("key pressed: <%d - %c>\n", *buf, *buf);
+		keyboard_reset_buf(buf, 1);
+		usleep(100000);
 	}
-	keyboard_safestop(keyboard_handler, keyboard_thread_id);
-	keyboard_free(keyboard_handler);
-	return 0;
+	free(buf);
+	// stop thread
+	keyboard_safestop(keyboard, thread_id);
+	// free space
+	keyboard_free(keyboard);
+	return (0);
 }
+
 ```
 
 ### Flags

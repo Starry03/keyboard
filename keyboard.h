@@ -11,15 +11,17 @@
 # include <stdbool.h>
 # include <stdint.h>
 
+# define KEYBOARD_MUTEX_NAME "/keyboard_mutex"
+
 typedef struct s_keyboard
 {
 	unsigned char	*buf;
-	uint32_t		exit_char;
+	unsigned char	exit_char;
 	bool			running;
 	bool			key_can_change;
 }					t_keyboard;
 
-t_keyboard			*keyboard_init(uint32_t exit_char, unsigned char *buf);
+t_keyboard			*keyboard_init(unsigned char exit_char, unsigned char *buf);
 void				keyboard_free(t_keyboard *keyboard);
 pthread_t			start_keylistener(t_keyboard *keyboard);
 void				set_key_can_change(t_keyboard *keyboard, bool value);
@@ -27,6 +29,8 @@ void				set_key_can_change(t_keyboard *keyboard, bool value);
 void				enable_raw_mode(void);
 void				disable_raw_mode(void);
 
+void				keyboard_reset_buf(char *buf, size_t size);
+void				keyboard_set_buf(char *buf, char c, size_t size);
 void				keyboard_bruteforce_exit(t_keyboard *keyboard);
 void				keyboard_safestop(t_keyboard *keyboard,
 						pthread_t thread_id);
